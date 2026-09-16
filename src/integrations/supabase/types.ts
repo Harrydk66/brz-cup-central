@@ -522,6 +522,14 @@ export type Database = {
         Returns: boolean
       }
       next_brz_id: { Args: never; Returns: string }
+      tournament_slot_counts: {
+        Args: never
+        Returns: {
+          confirmed: number
+          taken: number
+          tournament_id: string
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
