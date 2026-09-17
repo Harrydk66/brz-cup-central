@@ -6,10 +6,10 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 const NAV = [
-  { to: "/", label: "Início", icon: Home },
+  { to: "/", label: "Início", icon: Home, highlight: false },
   { to: "/jogar", label: "Jogar", icon: Swords, highlight: true },
-  { to: "/ranking", label: "Ranking", icon: Trophy },
-  { to: "/perfil", label: "Perfil", icon: User },
+  { to: "/ranking", label: "Ranking", icon: Trophy, highlight: false },
+  { to: "/perfil", label: "Perfil", icon: User, highlight: false },
 ] as const;
 
 export function AppShell({ children }: { children: React.ReactNode }) {
