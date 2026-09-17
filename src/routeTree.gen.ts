@@ -17,6 +17,7 @@ import { Route as MeusCampeonatosRouteImport } from './routes/meus-campeonatos'
 import { Route as PerfilRouteImport } from './routes/perfil'
 import { Route as RankingRouteImport } from './routes/ranking'
 import { Route as InscricaoTournamentIdRouteImport } from './routes/inscricao.$tournamentId'
+import { Route as ApiPublicWebhooksPaymentConfirmedRouteImport } from './routes/api/public/webhooks/payment-confirmed'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -58,6 +59,12 @@ const InscricaoTournamentIdRoute = InscricaoTournamentIdRouteImport.update({
   path: '/inscricao/$tournamentId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicWebhooksPaymentConfirmedRoute =
+  ApiPublicWebhooksPaymentConfirmedRouteImport.update({
+    id: '/api/public/webhooks/payment-confirmed',
+    path: '/api/public/webhooks/payment-confirmed',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -68,6 +75,7 @@ export interface FileRoutesByFullPath {
   '/perfil': typeof PerfilRoute
   '/ranking': typeof RankingRoute
   '/inscricao/$tournamentId': typeof InscricaoTournamentIdRoute
+  '/api/public/webhooks/payment-confirmed': typeof ApiPublicWebhooksPaymentConfirmedRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -78,6 +86,7 @@ export interface FileRoutesByTo {
   '/perfil': typeof PerfilRoute
   '/ranking': typeof RankingRoute
   '/inscricao/$tournamentId': typeof InscricaoTournamentIdRoute
+  '/api/public/webhooks/payment-confirmed': typeof ApiPublicWebhooksPaymentConfirmedRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -89,6 +98,7 @@ export interface FileRoutesById {
   '/perfil': typeof PerfilRoute
   '/ranking': typeof RankingRoute
   '/inscricao/$tournamentId': typeof InscricaoTournamentIdRoute
+  '/api/public/webhooks/payment-confirmed': typeof ApiPublicWebhooksPaymentConfirmedRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -101,6 +111,7 @@ export interface FileRouteTypes {
     | '/perfil'
     | '/ranking'
     | '/inscricao/$tournamentId'
+    | '/api/public/webhooks/payment-confirmed'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -111,6 +122,7 @@ export interface FileRouteTypes {
     | '/perfil'
     | '/ranking'
     | '/inscricao/$tournamentId'
+    | '/api/public/webhooks/payment-confirmed'
   id:
     | '__root__'
     | '/'
@@ -121,6 +133,7 @@ export interface FileRouteTypes {
     | '/perfil'
     | '/ranking'
     | '/inscricao/$tournamentId'
+    | '/api/public/webhooks/payment-confirmed'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -132,6 +145,7 @@ export interface RootRouteChildren {
   PerfilRoute: typeof PerfilRoute
   RankingRoute: typeof RankingRoute
   InscricaoTournamentIdRoute: typeof InscricaoTournamentIdRoute
+  ApiPublicWebhooksPaymentConfirmedRoute: typeof ApiPublicWebhooksPaymentConfirmedRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -192,6 +206,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InscricaoTournamentIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/webhooks/payment-confirmed': {
+      id: '/api/public/webhooks/payment-confirmed'
+      path: '/api/public/webhooks/payment-confirmed'
+      fullPath: '/api/public/webhooks/payment-confirmed'
+      preLoaderRoute: typeof ApiPublicWebhooksPaymentConfirmedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -204,6 +225,8 @@ const rootRouteChildren: RootRouteChildren = {
   PerfilRoute: PerfilRoute,
   RankingRoute: RankingRoute,
   InscricaoTournamentIdRoute: InscricaoTournamentIdRoute,
+  ApiPublicWebhooksPaymentConfirmedRoute:
+    ApiPublicWebhooksPaymentConfirmedRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
