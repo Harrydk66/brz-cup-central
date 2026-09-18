@@ -103,6 +103,39 @@ export interface RankingRow {
   kills: number;
   booyahs: number;
   matches: number;
+  mvps?: number;
+  earnings?: number;
+}
+
+export interface ResultRow {
+  id: string;
+  tournament_id: string;
+  player_id: string | null;
+  nick: string;
+  position: number;
+  kills: number;
+  prize: number;
+  is_mvp: boolean;
+}
+
+export interface ResultInput {
+  player_id?: string | null;
+  nick: string;
+  position: number;
+  kills: number;
+  prize?: number;
+  is_mvp?: boolean;
+}
+
+export interface WaitlistEntry {
+  id: string;
+  tournament_id: string;
+  player_id: string | null;
+  nick: string;
+  whatsapp: string;
+  queue_position: number;
+  notified: boolean;
+  created_at: string;
 }
 
 export interface Achievement {

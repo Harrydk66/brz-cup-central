@@ -250,32 +250,46 @@ export async function joinWaitlist(input: {
 
 /* --------------------------------- RANKINGS -------------------------------- */
 
+/** Início do período no fuso de São Paulo (YYYY-MM-DD) ou null para all-time. */
+async function periodStart(period: RankingPeriod): Promise<string | null> {
+  if (period === "all_time") return null;
+  if (period === "season") return await getSetting<string>("season_start");
+
+  const nowSp = new Date(Date.now() - 3 * 60 * 60 * 1000);
+  if (period === "month") {
+    return `${nowSp.getUTCFullYear()}-${String(nowSp.getUTCMonth() + 1).padStart(2, "0")}-01`;
+  }
+  // Semana começa na segunda-feira
+  const dow = nowSp.getUTCDay();
+  const diff = dow === 0 ? 6 : dow - 1;
+  const monday = new Date(nowSp.getTime() - diff * 86_400_000);
+  return monday.toISOString().slice(0, 10);
+}
+
 export async function listRanking(
   kind: RankingKind,
   period: RankingPeriod,
 ): Promise<RankingRow[]> {
-  const seasonScoped = period !== "all_time";
-  const orderCol = kind === "kills" ? "kills" : "booyahs";
-  const prefix = seasonScoped ? "season_" : "";
+  const from = await periodStart(period);
+  const data = unwrap(await supabase.rpc("ranking_period", { _from: from })) as
+    | RankingRow[]
+    | null;
 
-  const data = unwrap(
-    await supabase
-      .from("player_stats")
-      .select(
-        "player_id, kills, booyahs, matches, season_kills, season_booyahs, season_matches, profiles!inner(brz_id, nick)",
-      )
-      .order(`${prefix}${orderCol}`, { ascending: false })
-      .limit(100),
-  ) as unknown as (PlayerStats & { profiles: { brz_id: string; nick: string } })[] | null;
-
-  return (data ?? []).map((row) => ({
-    player_id: row.player_id,
-    brz_id: row.profiles.brz_id,
-    nick: row.profiles.nick,
-    kills: seasonScoped ? row.season_kills : row.kills,
-    booyahs: seasonScoped ? row.season_booyahs : row.booyahs,
-    matches: seasonScoped ? row.season_matches : row.matches,
+  const rows = (data ?? []).map((r) => ({
+    ...r,
+    kills: Number(r.kills),
+    booyahs: Number(r.booyahs),
+    matches: Number(r.matches),
+    mvps: Number(r.mvps ?? 0),
+    earnings: Number(r.earnings ?? 0),
   }));
+
+  rows.sort((a, b) =>
+    kind === "kills"
+      ? b.kills - a.kills || b.booyahs - a.booyahs || a.matches - b.matches
+      : b.booyahs - a.booyahs || b.kills - a.kills || a.matches - b.matches,
+  );
+  return rows.slice(0, 100);
 }
 
 export async function getRankingPrizes(): Promise<RankingPrizes> {
