@@ -40,7 +40,7 @@ export const Route = createFileRoute("/admin")({
   component: AdminPage,
 });
 
-type Tab = "dashboard" | "campeonatos" | "participantes";
+type Tab = "dashboard" | "campeonatos" | "participantes" | "resultados" | "espera" | "aquisicao";
 
 function AdminPage() {
   const { user, admin, loading } = useAuth();
@@ -84,6 +84,9 @@ function AdminPage() {
             { v: "dashboard", label: "Dashboard" },
             { v: "campeonatos", label: "Campeonatos" },
             { v: "participantes", label: "Participantes" },
+            { v: "resultados", label: "Resultados" },
+            { v: "espera", label: "Lista de espera" },
+            { v: "aquisicao", label: "Aquisição" },
           ] as const
         ).map((o) => (
           <button
@@ -105,6 +108,9 @@ function AdminPage() {
       {tab === "dashboard" && <DashboardTab />}
       {tab === "campeonatos" && <TournamentsTab />}
       {tab === "participantes" && <ParticipantsTab />}
+      {tab === "resultados" && <ResultsTab />}
+      {tab === "espera" && <WaitlistTab />}
+      {tab === "aquisicao" && <AcquisitionTab />}
     </AppShell>
   );
 }
