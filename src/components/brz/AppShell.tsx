@@ -40,6 +40,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </Link>
             ))}
             <Link
+              to="/resultados"
+              className="rounded-md px-3 py-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Resultados
+            </Link>
+            <Link
               to="/meus-campeonatos"
               className="rounded-md px-3 py-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground transition-colors hover:text-foreground"
             >

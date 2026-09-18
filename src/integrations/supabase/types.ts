@@ -394,6 +394,7 @@ export type Database = {
           max_players: number
           mode: Database["public"]["Enums"]["tournament_mode"]
           name: string
+          results_applied: boolean
           room_id: string | null
           room_password: string | null
           room_released: boolean
@@ -413,6 +414,7 @@ export type Database = {
           max_players?: number
           mode?: Database["public"]["Enums"]["tournament_mode"]
           name: string
+          results_applied?: boolean
           room_id?: string | null
           room_password?: string | null
           room_released?: boolean
@@ -432,6 +434,7 @@ export type Database = {
           max_players?: number
           mode?: Database["public"]["Enums"]["tournament_mode"]
           name?: string
+          results_applied?: boolean
           room_id?: string | null
           room_password?: string | null
           room_released?: boolean
@@ -514,6 +517,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      apply_tournament_results: {
+        Args: { _tournament_id: string }
+        Returns: Json
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -522,6 +529,19 @@ export type Database = {
         Returns: boolean
       }
       next_brz_id: { Args: never; Returns: string }
+      ranking_period: {
+        Args: { _from: string }
+        Returns: {
+          booyahs: number
+          brz_id: string
+          earnings: number
+          kills: number
+          matches: number
+          mvps: number
+          nick: string
+          player_id: string
+        }[]
+      }
       tournament_slot_counts: {
         Args: never
         Returns: {
