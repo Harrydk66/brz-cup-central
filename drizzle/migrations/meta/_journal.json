@@ -15,6 +15,13 @@
       "when": 1789593829498,
       "tag": "0001_tournament_slot_counts",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789697920797,
+      "tag": "0002_brz_phase2_results_rankings",
+      "breakpoints": true
     }
   ]
 }
