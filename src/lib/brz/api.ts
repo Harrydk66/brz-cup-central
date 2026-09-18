@@ -9,6 +9,9 @@ import type {
   RankingPeriod,
   RankingPrizes,
   RankingRow,
+  ResultInput,
+  ResultRow,
+  WaitlistEntry,
   Registration,
   RegistrationWithTournament,
   Tournament,
@@ -380,4 +383,130 @@ export async function adminDashboard() {
     takenSlots: activeTournaments.reduce((s, t) => s + t.taken_slots, 0),
     totalPlayers: players.count ?? 0,
   };
+}
+
+/* --------------------------------- RESULTADOS ------------------------------- */
+
+export async function listFinishedTournaments(): Promise<TournamentWithSlots[]> {
+  const all = await listTournaments();
+  return all
+    .filter((t) => t.status === "finished")
+    .sort((a, b) => (a.tournament_date < b.tournament_date ? 1 : -1));
+}
+
+export async function listResults(tournamentId: string): Promise<ResultRow[]> {
+  const data = unwrap(
+    await supabase
+      .from("results")
+      .select("*")
+      .eq("tournament_id", tournamentId)
+      .order("position", { ascending: true }),
+  ) as unknown as ResultRow[] | null;
+  return (data ?? []).map((r) => ({ ...r, prize: Number(r.prize) }));
+}
+
+/** Substitui os resultados de um Daily (registro manual ou importação). */
+export async function saveResults(tournamentId: string, rows: ResultInput[]) {
+  const del = await supabase.from("results").delete().eq("tournament_id", tournamentId);
+  if (del.error) throw new Error(del.error.message);
+  if (rows.length === 0) return;
+  const payload = rows.map((r) => ({
+    tournament_id: tournamentId,
+    player_id: r.player_id ?? null,
+    nick: r.nick,
+    position: r.position,
+    kills: r.kills,
+    prize: r.prize ?? 0,
+    is_mvp: r.is_mvp ?? false,
+  }));
+  const ins = await supabase.from("results").insert(payload as never);
+  if (ins.error) throw new Error(ins.error.message);
+}
+
+/**
+ * Confirma os resultados: o backend recalcula stats, premiação e conquistas.
+ * A regra vive no banco (apply_tournament_results) — nunca duplicada no frontend.
+ */
+export async function applyResults(tournamentId: string) {
+  const { data, error } = await supabase.rpc("apply_tournament_results", {
+    _tournament_id: tournamentId,
+  });
+  if (error) throw new Error(error.message);
+  return data as { players?: number; achievements_unlocked?: number; already_applied?: boolean };
+}
+
+/** Parser de importação: "posição;nick;kills;premiação" ou "posição,nick,kills". */
+export function parseResultsText(text: string): ResultInput[] {
+  return text
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const parts = line.split(/[;,\t]/).map((p) => p.trim());
+      const [position, nick, kills, prize] = parts;
+      return {
+        position: Number(position),
+        nick: nick ?? "",
+        kills: Number(kills ?? 0),
+        prize: prize ? Number(prize.replace(",", ".")) : 0,
+      };
+    })
+    .filter((r) => Number.isFinite(r.position) && r.nick.length > 0);
+}
+
+/* ------------------------------ LISTA DE ESPERA ----------------------------- */
+
+export async function listWaitlist(tournamentId: string): Promise<WaitlistEntry[]> {
+  const data = unwrap(
+    await supabase
+      .from("waitlist")
+      .select("*")
+      .eq("tournament_id", tournamentId)
+      .order("queue_position", { ascending: true }),
+  ) as unknown as WaitlistEntry[] | null;
+  return data ?? [];
+}
+
+/* --------------------------- ANALYTICS DE AQUISIÇÃO ------------------------- */
+
+export interface AcquisitionRow {
+  source: string;
+  visits: number;
+  started: number;
+  payments: number;
+  players: number;
+  conversion: number;
+}
+
+export async function acquisitionBreakdown(): Promise<AcquisitionRow[]> {
+  const [events, profiles] = await Promise.all([
+    supabase.from("acquisition_events").select("source, event_type, player_id"),
+    supabase.from("profiles").select("utm_source"),
+  ]);
+  if (events.error) throw new Error(events.error.message);
+
+  const rows = (events.data ?? []) as { source: string; event_type: string }[];
+  const map = new Map<string, AcquisitionRow>();
+  const get = (source: string) => {
+    if (!map.has(source))
+      map.set(source, { source, visits: 0, started: 0, payments: 0, players: 0, conversion: 0 });
+    return map.get(source)!;
+  };
+
+  for (const e of rows) {
+    const row = get(e.source || "organic");
+    if (e.event_type === "visit") row.visits += 1;
+    else if (e.event_type === "registration.created") row.started += 1;
+    else if (e.event_type === "payment.confirmed") row.payments += 1;
+  }
+  for (const p of (profiles.data ?? []) as { utm_source: string | null }[]) {
+    get(p.utm_source || "organic").players += 1;
+  }
+
+  return [...map.values()]
+    .map((r) => ({
+      ...r,
+      conversion: r.started > 0 ? Math.round((r.payments / r.started) * 100) : 0,
+    }))
+    .sort((a, b) => b.started - a.started || b.visits - a.visits);
 }
